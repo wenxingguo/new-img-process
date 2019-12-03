@@ -21,6 +21,9 @@
 #include <FL/Fl_RGB_Image.H>
 #include <FL/fl_ask.H>
 
+typedef Const_BaseView<uchar> Const_CvImgView;
+typedef BaseView<uchar> CvImgView;
+
 class CvImg:public Base<uchar>
 {
     public:
