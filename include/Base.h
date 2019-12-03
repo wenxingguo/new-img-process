@@ -91,6 +91,11 @@ class Base{
     
     ~Base(){
         if(data){
+            
+            #ifndef NDEBUG
+            std::cout << "delete base" << std::endl;
+            #endif
+
             delete [] data; //有可能还会造成内存泄漏
             data = nullptr;
         }
@@ -183,6 +188,147 @@ void Base<DataType>::sub_Base(Base<DataType>& sub_Base, REGION domain){
         //拷贝内存
         memcpy(&sub_Base(1, pose++, 0), &(*this)(domain[0], y, 0), sub_Base.get_width()*channels*sizeof(DataType));
     }
+}
+//****************************************************************
+//这个类型指定数据Base
+//区域视图
+//数据共享
+//****************************************************************
+class _BaseView_ {
+    protected:
+    REGION sub_region;
+
+    UINT width;
+
+    UINT height;
+
+    public:
+
+    _BaseView_(const REGION _region):sub_region(_region),
+                height(sub_region[3] - sub_region[1]+1),width(sub_region[2]-sub_region[0]+1){
+
+            }
+
+    virtual ~_BaseView_(){
+
+    }
+
+    void set_region(const REGION _region){
+        sub_region = _region;
+        height = sub_region[3] - sub_region[1]+1;
+        width = sub_region[2]-sub_region[0]+1;
+    }
+
+    REGION get_region() const{
+        return sub_region;
+    }
+
+    UINT get_height() const{
+        return height;
+    }
+
+    UINT get_width() const{
+        return width;
+    }
+
+};
+
+//********************************************
+//常量视图
+//********************************************
+template<class DataType>
+class Const_BaseView:public _BaseView_{
+    private:
+    const Base<DataType>& const_base;
+
+    public:
+
+    Const_BaseView(const Base<DataType>& _const_base);
+
+    Const_BaseView(const Base<DataType>& _const_base, const REGION region);
+
+    DataType& operator()(UINT x, UINT y, UINT j = 0);
+
+    const DataType& operator()(UINT x, UINT y, UINT j = 0) const;
+
+    ~Const_BaseView(){
+
+    }
+};
+
+
+template<class DataType>
+Const_BaseView<DataType>::Const_BaseView(const Base<DataType>& _const_base):_BaseView_({1,1, _const_base.get_width(), _const_base.get_height()}),
+                        const_base(_const_base){
+    
+}
+
+template<class DataType>
+Const_BaseView<DataType>::Const_BaseView(const Base<DataType>& _const_base, const REGION region):_BaseView_(region), const_base(_const_base){
+
+}
+
+
+template<class DataType>
+DataType& Const_BaseView<DataType>::operator()(UINT x, UINT y, UINT j){
+    Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < const_base.get_channels());
+    return const_base(x- sub_region[0]+1, y-sub_region[1]+1, j);
+    
+}
+
+template<class DataType>
+const DataType& Const_BaseView<DataType>::operator()(UINT x, UINT y, UINT j) const{
+    Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < const_base.get_channels());
+    return const_base(x- sub_region[0]+1, y-sub_region[1]+1, j);
+}
+
+
+//********************************************
+//非常量视图
+//********************************************
+template<class DataType>
+class BaseView:public _BaseView_{
+    private:
+    Base<DataType>& base;
+
+    public:
+
+    BaseView(Base<DataType>& _base);
+
+    BaseView(Base<DataType>& _base, const REGION region);
+    
+    DataType& operator()(UINT x, UINT y, UINT j = 0);
+    
+    const DataType& operator()(UINT x, UINT y, UINT j = 0) const;
+
+    ~BaseView(){
+        
+    }
+
+};
+
+template<class DataType>
+BaseView<DataType>::BaseView(Base<DataType>& _base):_BaseView_({1,1, _base.get_width(), _base.get_height()}),
+                        base(_base){
+    
+}
+
+template<class DataType>
+BaseView<DataType>::BaseView(Base<DataType>& _base, const REGION region):_BaseView_(region), base(_base){
+
+}
+
+
+template<class DataType>
+DataType& BaseView<DataType>::operator()(UINT x, UINT y, UINT j){
+    Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < base.get_channels());
+    return base(x - sub_region[0]+1, y-sub_region[1]+1, j);
+}
+
+template<class DataType>
+const DataType& BaseView<DataType>::operator()(UINT x, UINT y, UINT j) const{
+    Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < base.get_channels());
+    return base(x- sub_region[0]+1, y-sub_region[1]+1, j);
 }
 
 #endif
