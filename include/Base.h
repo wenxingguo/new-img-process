@@ -32,6 +32,11 @@ typedef std::vector<UINT> REGION; //[x1, y1, x2, y2]
 typedef std::vector<UINT> POINT;//[x1,y1]
 typedef unsigned char uchar;
 
+template<class DataType> class Const_BaseView;
+template<class DataType> class BaseView;
+//****************************************************
+//矩阵类型最底层数据
+//****************************************************
 template<class DataType>
 class Base{
     typedef DataType* DataTypep;
@@ -59,7 +64,7 @@ class Base{
 
     Base<DataType>& operator=(const Base<DataType>& r_base);
 
-    virtual void info() = 0;
+    virtual void info() const = 0;
     
     UINT get_width() const{
         return width;
@@ -103,7 +108,7 @@ class Base{
 
     void flip(); //反转
 
-    void stick(const Base<DataType>& sub_Base, POINT point);
+    template<class Type> void stick(const Type& T, POINT point); //借助函数模板提高代码重用
 
     void sub_Base(Base<DataType>& subBase, REGION domain); //获得一个Base的子图
 };
@@ -168,15 +173,14 @@ void Base<DataType>::flip(){
 }
 
 template<class DataType>
-void Base<DataType>::stick(const Base<DataType>& sub_Base, POINT position){
-    Base_assert(sub_Base.get_channels() == channels);
+template<class Type> void Base<DataType>::stick(const Type& T, POINT position){
+    Base_assert(T.get_channels() == channels);
     Base_assert(position.size() == 2);
     int y_pose = 1;
-    for(int y = position[1]; y <= position[1]+sub_Base.get_height()-1; ){
+    for(int y = position[1]; y <= position[1]+T.get_height()-1; ){
         //拷贝内存
-        memcpy(&(*this)(position[0], y++, 0), &sub_Base(1, y_pose++, 0), sub_Base.get_width()*channels*sizeof(DataType));
+        memcpy(&(*this)(position[0], y++, 0), &T(1, y_pose++, 0), T.get_width()*channels*sizeof(DataType));
     }
-
 }
 
 template<class DataType>
@@ -247,6 +251,10 @@ class Const_BaseView:public _BaseView_{
 
     Const_BaseView(const Base<DataType>& _const_base, const REGION region);
 
+    UINT get_channels() const{
+        return const_base.get_channels();
+    }
+
     DataType& operator()(UINT x, UINT y, UINT j = 0);
 
     const DataType& operator()(UINT x, UINT y, UINT j = 0) const;
@@ -297,6 +305,10 @@ class BaseView:public _BaseView_{
 
     BaseView(Base<DataType>& _base, const REGION region);
     
+    UINT get_channels() const{
+        return base.get_channels();
+    }
+    
     DataType& operator()(UINT x, UINT y, UINT j = 0);
     
     const DataType& operator()(UINT x, UINT y, UINT j = 0) const;
@@ -330,5 +342,4 @@ const DataType& BaseView<DataType>::operator()(UINT x, UINT y, UINT j) const{
     Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < base.get_channels());
     return base(x- sub_region[0]+1, y-sub_region[1]+1, j);
 }
-
 #endif

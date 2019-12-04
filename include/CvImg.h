@@ -48,9 +48,9 @@ class CvImg:public Base<uchar>
 
     void add_show_list(const char* s = "Untitled") const;
 
-    void img_save(const char* file_name,  COLORTYPE colortype);
+    void img_save(const char* file_name,  COLORTYPE colortype) const;
 
-    void info();
+    void info() const;
 
     static int imshow();
 

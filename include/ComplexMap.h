@@ -7,6 +7,9 @@
 #include "fftw3.h"
 #include "Base.h"
 
+//***********************************************
+//为复数设计的类
+//***********************************************
 class ComplexMap:public Base<fftw_complex>{
     public:
     ComplexMap();
@@ -26,7 +29,7 @@ class ComplexMap:public Base<fftw_complex>{
         }
     }
 
-    void info();
+    void info() const;
 
 
 };

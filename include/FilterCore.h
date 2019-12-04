@@ -13,7 +13,7 @@ class FilterCore:public Base<double>{
 
     FilterCore(UINT in_width, UINT in_height, UINT in_channels);
 
-    void info();
+    void info() const;
 
 };
 #endif
