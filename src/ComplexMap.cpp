@@ -26,7 +26,7 @@ ComplexMap::ComplexMap(const Base<fftw_complex>& complex_base):Base<fftw_complex
 
 }
 
-void ComplexMap::info(){
+void ComplexMap::info() const{
     std:: cout << "Info: " << "<type: ComplexMap Width: " << width
                 << " Height: " << height << " Channels: " << channels << ">\n";
 }

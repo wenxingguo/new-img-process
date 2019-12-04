@@ -49,7 +49,7 @@ void CvImg::add_show_list(const char* s) const{
     show_img_name.push_back(s);
 }
 
-void CvImg::img_save(const char* file_name, COLORTYPE flag){
+void CvImg::img_save(const char* file_name, COLORTYPE flag) const{
     if(channels == 1){
         cv::imwrite(file_name, cv::Mat(height, width, 0, data));
     }
@@ -58,7 +58,7 @@ void CvImg::img_save(const char* file_name, COLORTYPE flag){
     cv::imwrite(file_name, temp);
 }
 
-void CvImg::info(){
+void CvImg::info() const{
     std:: cout << "Info: " << "<type: CvImg Width: " << width
                 << " Height: " << height << " Channels: " << channels << ">\n";
 }

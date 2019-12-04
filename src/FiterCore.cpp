@@ -14,7 +14,7 @@ Base<double>::Base(in_width, in_height, in_channels){
     
 }
 
-void FilterCore::info(){
+void FilterCore::info() const{
     std:: cout << "Info: " << "<type: FilterCore Width: " << width
                 << " Height: " << height << " Channels: " << channels << ">\n";
 }
