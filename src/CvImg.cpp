@@ -39,8 +39,25 @@ CvImg(complex_map.get_width(), complex_map.get_height(), complex_map.get_channel
 
 CvImg::CvImg(const char* filename, int flag){
     cv::Mat img_ = cv::imread(filename, flag);
+    Base_assert(img_.data);
     get_data_from_mat(img_);
 
+}
+
+void CvImg::gray_fft(Base<fftw_complex>& complex_map){
+    Base_assert(channels == 1);
+    UINT size = height*width*channels;
+    fftw_plan plan_img;
+    fftw_complex* in = new fftw_complex[size];
+    for (int i = 0; i < size; ++i) {
+		in[i][0] = data[i];
+		in[i][1] = 0;
+	}
+
+    plan_img = fftw_plan_dft_2d(height, width, in, complex_map.get_data_handle(), FFTW_FORWARD, FFTW_ESTIMATE);
+    fftw_execute(plan_img);
+    fftw_destroy_plan(plan_img);
+    fftw_free(in);
 }
 
 void CvImg::add_show_list(const char* s) const{
