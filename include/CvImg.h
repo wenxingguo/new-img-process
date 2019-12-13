@@ -46,6 +46,9 @@ class CvImg:public Base<uchar>
     //0是灰度图
     CvImg(const char* filename, int flag = 1);
 
+    void gray_fft(Base<fftw_complex>& complex_map);
+
+
     void add_show_list(const char* s = "Untitled") const;
 
     void img_save(const char* file_name,  COLORTYPE colortype) const;

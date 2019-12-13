@@ -64,7 +64,7 @@ class Base{
 
     Base<DataType>& operator=(const Base<DataType>& r_base);
 
-    virtual void info() const = 0;
+    virtual void info() const;
     
     UINT get_width() const{
         return width;
@@ -96,11 +96,6 @@ class Base{
     
     ~Base(){
         if(data){
-            
-            #ifndef NDEBUG
-            std::cout << "delete base" << std::endl;
-            #endif
-
             delete [] data; //有可能还会造成内存泄漏
             data = nullptr;
         }
@@ -109,6 +104,8 @@ class Base{
     void flip(); //反转
 
     template<class Type> void stick(const Type& T, POINT point); //借助函数模板提高代码重用
+
+    void shift();
 
     void sub_Base(Base<DataType>& subBase, REGION domain); //获得一个Base的子图
 };
@@ -156,6 +153,12 @@ Base<DataType>& Base<DataType>::operator=(const Base<DataType>& r_base){
 }
 
 template<class DataType>
+void Base<DataType>::info() const{
+    std:: cout << "Info: " << "<type: Base Width: " << width
+                << " Height: " << height << " Channels: " << channels << ">\n";
+}
+
+template<class DataType>
 void Base<DataType>::flip(){
     DataType* buffer = new DataType[width*height*channels];
     UINT pose = 0;
@@ -181,6 +184,19 @@ template<class Type> void Base<DataType>::stick(const Type& T, POINT position){
         //拷贝内存
         memcpy(&(*this)(position[0], y++, 0), &T(1, y_pose++, 0), T.get_width()*channels*sizeof(DataType));
     }
+}
+
+template<class DataType>
+void Base<DataType>::shift(){
+    Base<DataType> sub_base(width/2, height/2, channels);
+    sub_Base(sub_base, {1,1, width/2, height/2});
+    Const_BaseView<DataType> sub_view(*this, {(width+1)/2+1, (height+1)/2+1, width, height});
+    stick(sub_view, {1,1});
+    stick(sub_base, {(width+1)/2+1, (height+1)/2+1});
+    sub_Base(sub_base, {(width+1)/2+1, 1, width, height/2});
+    sub_view.set_region({1, (height+1)/2+1, (width/2), height});
+    stick(sub_view, {(width+1)/2+1, 1});
+    stick(sub_base,{1, (height+1)/2+1});
 }
 
 template<class DataType>
@@ -280,14 +296,14 @@ Const_BaseView<DataType>::Const_BaseView(const Base<DataType>& _const_base, cons
 template<class DataType>
 DataType& Const_BaseView<DataType>::operator()(UINT x, UINT y, UINT j){
     Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < const_base.get_channels());
-    return const_base(x- sub_region[0]+1, y-sub_region[1]+1, j);
+    return const_base(x+ sub_region[0]-1, y+sub_region[1]-1, j);
     
 }
 
 template<class DataType>
 const DataType& Const_BaseView<DataType>::operator()(UINT x, UINT y, UINT j) const{
     Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < const_base.get_channels());
-    return const_base(x- sub_region[0]+1, y-sub_region[1]+1, j);
+    return const_base(x+sub_region[0]-1, y+sub_region[1]-1, j);
 }
 
 
@@ -334,12 +350,12 @@ BaseView<DataType>::BaseView(Base<DataType>& _base, const REGION region):_BaseVi
 template<class DataType>
 DataType& BaseView<DataType>::operator()(UINT x, UINT y, UINT j){
     Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < base.get_channels());
-    return base(x - sub_region[0]+1, y-sub_region[1]+1, j);
+    return base(x + sub_region[0]-1, y+sub_region[1]-1, j);
 }
 
 template<class DataType>
 const DataType& BaseView<DataType>::operator()(UINT x, UINT y, UINT j) const{
     Base_assert(0 < x && x <= width && 0 < y && y <= height && 0 <= j && j < base.get_channels());
-    return base(x- sub_region[0]+1, y-sub_region[1]+1, j);
+    return base(x+sub_region[0]-1, y+sub_region[1]-1, j);
 }
 #endif

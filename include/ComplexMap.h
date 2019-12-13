@@ -10,6 +10,9 @@
 //***********************************************
 //为复数设计的类
 //***********************************************
+typedef Const_BaseView<fftw_complex> Const_ComplexMapView;
+typedef BaseView<fftw_complex> ComplexMapView;
+
 class ComplexMap:public Base<fftw_complex>{
     public:
     ComplexMap();
